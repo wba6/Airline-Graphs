@@ -1,5 +1,7 @@
+#include <climits>
 #include <iostream>
 #include <fstream>
+#include <iterator>
 #include <ostream>
 #include <sstream>
 #include <vector>
@@ -146,6 +148,26 @@ public:
         }
         return mst;
     }
+
+    std::vector<Edge> computeShortestEdges(std::string startCity, std::string endCity) {
+        std::vector<int> dist{INT_MAX};
+        std::vector<int> parent{-1};
+
+        // get the integer representations of both cities
+        auto startIndex = find(cities.begin(), cities.end(), startCity);
+        if (startIndex == cities.end()) {
+            std::cerr << "Unable to locate city: " << startCity << std::endl; 
+        }
+
+        auto endIndex = find(cities.begin(), cities.end(), endCity);
+        if (endIndex == cities.end()) {
+            std::cerr << "Unable to locate city: " << endCity << std::endl;
+        }
+
+        dist[std::distance(std::begin(cities), startIndex)] = 0;
+
+    }
+
 };
 
 int main(int argc, char* argv[]) {
@@ -187,8 +209,8 @@ int main(int argc, char* argv[]) {
         int totalDistance = 0;
         for (auto &edge : mstEdges) {
             std::cout << graph.cities[edge.u] << " <-> " << graph.cities[edge.v]
-                 << " | Distance: " << edge.distance << " miles"
-                 << " | Price: $" << edge.cost << std::endl;
+                 << ", Distance: " << edge.distance << " miles"
+                 << ", Price: $" << edge.cost << std::endl;
             totalDistance += edge.distance;
         }
         std::cout << "Total distance of MST: " << totalDistance << " miles" << std::endl;
