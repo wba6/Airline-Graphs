@@ -1,45 +1,96 @@
-#include <climits>
+/**
+ * @file airline_project.cpp
+ * @brief Implementation for Airline Graph Project (Parts 1 and 2).
+ *
+ * This program reads an airline route file containing the number of cities,
+ * the list of city names, and the routes between cities (each with distance
+ * and price). It then displays:
+ *  - The direct routes (Part 1 Query 1)
+ *  - The Minimum Spanning Tree (MST) (Part 1 Query 2)
+ *  - The shortest path between two cities based on three metrics:
+ *      * Total distance (miles)
+ *      * Total price ($)
+ *      * Number of hops
+ *
+ * Dijkstra’s algorithm is used for all three metrics by parameterizing the
+ * weight with a lambda function.
+ */
+
 #include <iostream>
-#include <fstream>
-#include <iterator>
-#include <ostream>
-#include <sstream>
 #include <vector>
 #include <string>
+#include <queue>
+#include <limits>
+#include <functional>
+#include <fstream>
+#include <sstream>
+#include <unordered_map>
 #include <algorithm>
+#include <iomanip>
 #include <map>
 
-// Structure to represent an edge in the graph.
+/**
+ * @brief Structure representing a route for MST computation.
+ */
 struct Edge {
-    int u, v;       // u and v are indices into the 'cities' vector (0-indexed)
-    int distance;   // distance in miles
-    double cost;    // price of the route
+    int u;          ///< Index of the first city (0-indexed)
+    int v;          ///< Index of the second city (0-indexed)
+    int distance;   ///< Distance in miles
+    double cost;    ///< Price of the route
 };
 
-// Union-Find (Disjoint Set) class to support Kruskal’s algorithm.
+/**
+ * @brief Structure representing an edge in the adjacency list.
+ *
+ * Used for shortest-path queries.
+ */
+struct EdgeInfo {
+    int neighbor;   ///< Index of the neighboring city
+    int distance;   ///< Distance in miles
+    double cost;    ///< Price of the route
+};
+
+/**
+ * @brief Disjoint-set (Union-Find) data structure for Kruskal's algorithm.
+ */
 class UnionFind {
 public:
-    std::vector<int> parent;
-    std::vector<int> rank;
+    std::vector<int> parent; ///< Parent array for each set
+    std::vector<int> rank;   ///< Rank array for union by rank
 
+    /**
+     * @brief Constructor that initializes n disjoint sets.
+     * @param n Number of sets (typically, the number of cities).
+     */
     UnionFind(int n) {
         parent.resize(n);
         rank.resize(n, 0);
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; ++i)
             parent[i] = i;
     }
 
-    // Find with path compression.
+    /**
+     * @brief Finds the representative of the set that contains x.
+     * @param x The element to find.
+     * @return The representative (root) of the set.
+     */
     int find(int x) {
         if (parent[x] != x)
             parent[x] = find(parent[x]);
         return parent[x];
     }
 
-    // Union by rank. Returns false if x and y are already in the same set.
+    /**
+     * @brief Unites the sets that contain x and y.
+     *
+     * Uses union by rank.
+     *
+     * @param x First element.
+     * @param y Second element.
+     * @return True if the sets were merged; false if they were already in the same set.
+     */
     bool unionSets(int x, int y) {
-        int rootX = find(x);
-        int rootY = find(y);
+        int rootX = find(x), rootY = find(y);
         if (rootX == rootY)
             return false;
         if (rank[rootX] < rank[rootY])
@@ -51,97 +102,135 @@ public:
     }
 };
 
-// Graph class: reads the file, stores the cities and edges, prints routes, and computes the MST.
+/**
+ * @brief Graph class encapsulating cities and routes.
+ *
+ * This class reads graph data from a file and provides methods for:
+ *  - Displaying direct routes.
+ *  - Computing and printing the Minimum Spanning Tree (MST).
+ *  - Computing shortest paths using a unified Dijkstra algorithm.
+ */
 class Graph {
 public:
-    int numCities;
-    std::vector<std::string> cities;
-    std::vector<Edge> edges;
+    int numCities;                                      ///< Number of cities
+    std::vector<std::string> cities;                    ///< City names (index to name)
+    std::unordered_map<std::string, int> cityToIndex;   ///< Map from city name to index
+    std::vector<std::vector<EdgeInfo>> adjList;         ///< Adjacency list for shortest path queries
+    std::vector<Edge> edges;                            ///< Edge list for MST computation
 
+    /**
+     * @brief Default constructor.
+     */
     Graph() : numCities(0) {}
 
-    // Reads the graph data from a file.
+    /**
+     * @brief Reads the graph data from a file.
+     *
+     * File format:
+     *   - First line: number of cities (N)
+     *   - Next N lines: each city name
+     *   - Remaining lines: routes in the format:
+     *         city1 city2 distance cost
+     *     (City numbers are 1-indexed in the file.)
+     *
+     * @param filename The path to the route file.
+     * @return True if reading was successful; false otherwise.
+     */
     bool readFromFile(const std::string &filename) {
         std::ifstream infile(filename);
         if (!infile) {
             std::cerr << "Error opening file: " << filename << std::endl;
             return false;
         }
-        std::string line;
-        // First line: number of cities.
-        getline(infile, line);
-        if (line.empty())
-            return false;
-        numCities = stoi(line);
 
-        // Read city names.
+        std::string line;
+        // 1. Read number of cities.
+        if (!std::getline(infile, line)) {
+            std::cerr << "File is empty or invalid." << std::endl;
+            return false;
+        }
+        numCities = std::stoi(line);
+
+        // 2. Read city names.
+        cities.resize(numCities);
         for (int i = 0; i < numCities; i++) {
-            getline(infile, line);
-            // Remove trailing carriage return if present
-            if (!line.empty() && line.back() == '\r') {
-                line.pop_back();
+            if (!std::getline(infile, line)) {
+                std::cerr << "Not enough city names provided." << std::endl;
+                return false;
             }
-            cities.push_back(line);
+            // Remove any trailing carriage return (Windows line endings).
+            if (!line.empty() && line.back() == '\r')
+                line.pop_back();
+            cities[i] = line;
+            cityToIndex[line] = i;
         }
 
+        // 3. Initialize adjacency list.
+        adjList.assign(numCities, std::vector<EdgeInfo>());
 
-        // Read each route (edge). Format: city1 city2 distance price.
-        while (getline(infile, line)) {
+        // 4. Read route data.
+        while (std::getline(infile, line)) {
             if (line.empty())
                 continue;
             std::istringstream iss(line);
-            int u, v, dist;
+            int c1, c2, dist;
             double price;
-            if (!(iss >> u >> v >> dist >> price))
-                break;
-            Edge e;
-            // Adjust indices from 1-indexed to 0-indexed.
-            e.u = u - 1;
-            e.v = v - 1;
-            e.distance = dist;
-            e.cost = price;
-            edges.push_back(e);
+            if (!(iss >> c1 >> c2 >> dist >> price)) {
+                // Skip malformed lines.
+                continue;
+            }
+            // Adjust from 1-indexed to 0-indexed.
+            int u = c1 - 1;
+            int v = c2 - 1;
+
+            // Store edge (only once) for MST.
+            edges.push_back({u, v, dist, price});
+
+            // For undirected graph, add edge to both u and v lists.
+            adjList[u].push_back({v, dist, price});
+            adjList[v].push_back({u, dist, price});
         }
+
         infile.close();
         return true;
     }
 
-    // Prints all direct routes in a well-formatted manner.
-    void printGraph() {
-        // Print summary
-        std::cout << "There are " << numCities << " cities and "
-         << edges.size() << " direct connections." << std::endl << std::endl;
-
-        // For each city, list all routes (edges) that include that city
-        for (int i = 0; i < numCities; i++) {
-            std::cout << "(" << cities[i] << ")" << std::endl;
-            for (auto &edge : edges) {
-                if (edge.u == i) {
-                    // edge.u is the current city; edge.v is the "other" city
-                    std::cout << "... " << cities[i] << "-" << cities[edge.v] << ", "
-                     << edge.distance << " miles, $"
-                     << std::fixed << std::setprecision(2) << edge.cost << std::endl;
-                } else if (edge.v == i) {
-                    // edge.v is the current city; edge.u is the "other" city
-                    std::cout << "... " << cities[i] << "-" << cities[edge.u] << ", "
-                     << edge.distance << " miles, $"
-                     << std::fixed << std::setprecision(2) << edge.cost << std::endl;
-                }
+    /**
+     * @brief Displays all direct routes in the graph.
+     *
+     * Each city is printed along with its direct routes.
+     */
+    void printGraph() const {
+        std::cout << "----- Direct Routes -----\n";
+        std::cout << "Total Cities: " << numCities << "\n";
+        std::cout << "Total Direct Routes: " << edges.size() << "\n\n";
+        for (int i = 0; i < numCities; ++i) {
+            std::cout << "(" << cities[i] << ")\n";
+            // Display all routes for this city.
+            for (const auto &edge : adjList[i]) {
+                std::cout << "  -> " << cities[i] << " - " << cities[edge.neighbor]
+                          << " | Distance: " << edge.distance << " miles"
+                          << " | Price: $" << std::fixed << std::setprecision(2) << edge.cost << "\n";
             }
-            std::cout << std::endl;
+            std::cout << "\n";
         }
     }
 
-    // Computes the MST edges using Kruskal's algorithm (based on distance).
-    std::vector<Edge> computeMSTEdges() {
+    /**
+     * @brief Computes the Minimum Spanning Tree (MST) using Kruskal's algorithm.
+     *
+     * @return A vector of edges that are in the MST.
+     */
+    std::vector<Edge> computeMSTEdges() const {
         std::vector<Edge> mst;
-        // Make a copy of edges and sort them by distance.
+        // Copy edges for sorting.
         std::vector<Edge> sortedEdges = edges;
-        sort(sortedEdges.begin(), sortedEdges.end(), [](const Edge &a, const Edge &b) {
+        std::sort(sortedEdges.begin(), sortedEdges.end(), [](const Edge &a, const Edge &b) {
             return a.distance < b.distance;
         });
+
         UnionFind uf(numCities);
-        for (auto &edge : sortedEdges) {
+        for (const auto &edge : sortedEdges) {
             if (uf.unionSets(edge.u, edge.v)) {
                 mst.push_back(edge);
             }
@@ -149,85 +238,219 @@ public:
         return mst;
     }
 
-    std::vector<Edge> computeShortestEdges(std::string startCity, std::string endCity) {
-        std::vector<int> dist{INT_MAX};
-        std::vector<int> parent{-1};
-
-        // get the integer representations of both cities
-        auto startIndex = find(cities.begin(), cities.end(), startCity);
-        if (startIndex == cities.end()) {
-            std::cerr << "Unable to locate city: " << startCity << std::endl; 
+    /**
+     * @brief Displays the Minimum Spanning Tree (MST) of the graph.
+     *
+     * If the graph is disconnected, the MSTs for each connected component are displayed.
+     */
+    void printMST() const {
+        std::vector<Edge> mstEdges = computeMSTEdges();
+        // Group MST edges by connected component using UnionFind.
+        UnionFind uf(numCities);
+        for (const auto &edge : mstEdges) {
+            uf.unionSets(edge.u, edge.v);
+        }
+        std::map<int, std::vector<Edge>> components;
+        for (const auto &edge : mstEdges) {
+            int comp = uf.find(edge.u);
+            components[comp].push_back(edge);
         }
 
-        auto endIndex = find(cities.begin(), cities.end(), endCity);
-        if (endIndex == cities.end()) {
-            std::cerr << "Unable to locate city: " << endCity << std::endl;
+        std::cout << "----- Minimum Spanning Tree(s) (by distance) -----\n";
+        if (components.size() == 1) {
+            int totalDistance = 0;
+            for (const auto &edge : mstEdges) {
+                std::cout << "  " << cities[edge.u] << " <-> " << cities[edge.v]
+                          << " | Distance: " << edge.distance << " miles"
+                          << " | Price: $" << std::fixed << std::setprecision(2) << edge.cost << "\n";
+                totalDistance += edge.distance;
+            }
+            std::cout << "Total MST Distance: " << totalDistance << " miles\n\n";
+        } else {
+            int compNum = 1;
+            for (const auto &entry : components) {
+                std::cout << "Component " << compNum << ":\n";
+                int totalDistance = 0;
+                for (const auto &edge : entry.second) {
+                    std::cout << "  " << cities[edge.u] << " <-> " << cities[edge.v]
+                              << " | Distance: " << edge.distance << " miles"
+                              << " | Price: $" << std::fixed << std::setprecision(2) << edge.cost << "\n";
+                    totalDistance += edge.distance;
+                }
+                std::cout << "Total Distance: " << totalDistance << " miles\n\n";
+                compNum++;
+            }
         }
-
-        dist[std::distance(std::begin(cities), startIndex)] = 0;
-
     }
 
+    /**
+     * @brief Unified Dijkstra algorithm for shortest path queries.
+     *
+     * This function uses a lambda function (weightFunc) to determine the weight
+     * of an edge. It can be used for different metrics:
+     *  - For distance queries: weightFunc(edge) = edge.distance.
+     *  - For price queries:    weightFunc(edge) = edge.cost.
+     *  - For hops queries:     weightFunc(edge) = 1.
+     *
+     * @param start Index of the starting city.
+     * @param goal Index of the destination city.
+     * @param weightFunc A lambda that takes an EdgeInfo and returns its weight.
+     * @param outTotalCost Returns the total cumulative weight for the computed path.
+     * @return A vector representing the parent of each node in the shortest path tree.
+     */
+    std::vector<int> unifiedDijkstra(int start, int goal, std::function<double(const EdgeInfo&)> weightFunc, double &outTotalCost) {
+        std::vector<double> cost(numCities, std::numeric_limits<double>::infinity());
+        std::vector<int> parent(numCities, -1);
+        cost[start] = 0.0;
+
+        // Priority queue: (cumulative cost, city index)
+        std::priority_queue<std::pair<double, int>, std::vector<std::pair<double, int>>, std::greater<std::pair<double, int>>> pq;
+        pq.push({0.0, start});
+
+        while (!pq.empty()) {
+            auto [currCost, u] = pq.top();
+            pq.pop();
+
+            // Skip stale entries.
+            if (currCost > cost[u])
+                continue;
+            if (u == goal)
+                break;  // Destination reached.
+
+            // Relax adjacent edges.
+            for (const auto &edge : adjList[u]) {
+                int v = edge.neighbor;
+                double newCost = cost[u] + weightFunc(edge);
+                if (newCost < cost[v]) {
+                    cost[v] = newCost;
+                    parent[v] = u;
+                    pq.push({newCost, v});
+                }
+            }
+        }
+
+        outTotalCost = cost[goal];
+        return parent;
+    }
+
+    /**
+     * @brief Reconstructs the path from the source to destination.
+     *
+     * Given the parent vector from the shortest path algorithm, this function
+     * reconstructs the path from the source city to the destination city.
+     *
+     * @param parent The parent vector.
+     * @param dest The destination city index.
+     * @return A vector containing the indices of the cities along the path.
+     */
+    std::vector<int> reconstructPath(const std::vector<int> &parent, int dest) const {
+        std::vector<int> path;
+        for (int cur = dest; cur != -1; cur = parent[cur])
+            path.push_back(cur);
+        std::reverse(path.begin(), path.end());
+        return path;
+    }
 };
 
-int main(int argc, char* argv[]) {
-    std::string filename;
-    // If no filename is given as a command-line argument, prompt the user.
-    if (argc < 2) {
-        std::cout << "Enter the route file name: ";
-        std::cin >> filename;
-    } else {
-        filename = argv[1];
-    }
-
+/**
+ * @brief Main entry point.
+ *
+ * This function:
+ *  - Prompts the user for the route file name.
+ *  - Reads the graph data.
+ *  - Displays the direct routes and the MST.
+ *  - Prompts for the source and destination cities.
+ *  - Computes and displays the shortest path based on distance, price, and hops.
+ *
+ * @return int Exit status.
+ */
+int main() {
     Graph graph;
+    std::string filename;
+
+    std::cout << "Enter route file name (e.g., airline1.txt): ";
+    std::cin >> filename;
+
     if (!graph.readFromFile(filename)) {
-        std::cerr << "Failed to read graph from file." << std::endl;
+        std::cerr << "Error reading graph data from file. Exiting.\n";
         return 1;
     }
 
-    // Part I, Query 1: Show the entire list of direct routes.
+    // Display direct routes and MST.
+    std::cout << "\n";
     graph.printGraph();
+    graph.printMST();
 
-    // Part I, Query 2: Compute the MST (minimum spanning tree) based on distances.
-    std::vector<Edge> mstEdges = graph.computeMSTEdges();
+    // Ask for the source and destination cities.
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear newline
+    std::string srcCity, dstCity;
+    std::cout << "Enter source city: ";
+    std::getline(std::cin, srcCity);
+    std::cout << "Enter destination city: ";
+    std::getline(std::cin, dstCity);
 
-    // Group MST edges by connected component.
-    UnionFind uf(graph.numCities);
-    for (auto &edge : mstEdges) {
-        uf.unionSets(edge.u, edge.v);
+    // Validate cities.
+    if (graph.cityToIndex.find(srcCity) == graph.cityToIndex.end() ||
+        graph.cityToIndex.find(dstCity) == graph.cityToIndex.end()) {
+        std::cerr << "Error: One or both cities not found in the graph.\n";
+        return 1;
     }
-    std::map<int, std::vector<Edge>> components;
-    for (auto &edge : mstEdges) {
-        int rep = uf.find(edge.u);
-        components[rep].push_back(edge);
-    }
+    int srcIdx = graph.cityToIndex[srcCity];
+    int dstIdx = graph.cityToIndex[dstCity];
 
-    // Display the MST(s).
-    if (components.size() == 1) {
-        std::cout << "Minimum Spanning Tree (based on distances):" << std::endl;
-        int totalDistance = 0;
-        for (auto &edge : mstEdges) {
-            std::cout << graph.cities[edge.u] << " <-> " << graph.cities[edge.v]
-                 << ", Distance: " << edge.distance << " miles"
-                 << ", Price: $" << edge.cost << std::endl;
-            totalDistance += edge.distance;
-        }
-        std::cout << "Total distance of MST: " << totalDistance << " miles" << std::endl;
+    // --- Compute and display shortest path by distance ---
+    double totalDistance;
+    std::vector<int> parentDistance = graph.unifiedDijkstra(srcIdx, dstIdx,
+        [](const EdgeInfo &edge) -> double { return edge.distance; },
+        totalDistance);
+    std::cout << "\n----- Shortest Path by Distance -----\n";
+    if (totalDistance == std::numeric_limits<double>::infinity()) {
+        std::cout << "No path exists between " << srcCity << " and " << dstCity << ".\n";
     } else {
-        int compNum = 1;
-        for (auto &comp : components) {
-            std::cout << "Minimum Spanning Tree for Component " << compNum << ":" << std::endl;
-            int totalDistance = 0;
-            for (auto &edge : comp.second) {
-                std::cout << graph.cities[edge.u] << " <-> " << graph.cities[edge.v]
-                     << " | Distance: " << edge.distance << " miles"
-                     << " | Price: $" << edge.cost << std::endl;
-                totalDistance += edge.distance;
-            }
-            std::cout << "Total distance: " << totalDistance << " miles" << std::endl << std::endl;
-            compNum++;
+        std::vector<int> path = graph.reconstructPath(parentDistance, dstIdx);
+        for (std::size_t i = 0; i < path.size(); ++i) {
+            std::cout << graph.cities[path[i]];
+            if (i < path.size() - 1)
+                std::cout << " -> ";
         }
+        std::cout << "\nTotal Distance: " << totalDistance << " miles\n";
+    }
+
+    // --- Compute and display shortest path by price ---
+    double totalPrice;
+    std::vector<int> parentPrice = graph.unifiedDijkstra(srcIdx, dstIdx,
+        [](const EdgeInfo &edge) -> double { return edge.cost; },
+        totalPrice);
+    std::cout << "\n----- Shortest Path by Price -----\n";
+    if (totalPrice == std::numeric_limits<double>::infinity()) {
+        std::cout << "No path exists between " << srcCity << " and " << dstCity << ".\n";
+    } else {
+        std::vector<int> path = graph.reconstructPath(parentPrice, dstIdx);
+        for (std::size_t i = 0; i < path.size(); ++i) {
+            std::cout << graph.cities[path[i]];
+            if (i < path.size() - 1)
+                std::cout << " -> ";
+        }
+        std::cout << std::fixed << std::setprecision(2);
+        std::cout << "\nTotal Price: $" << totalPrice << "\n";
+    }
+
+    // --- Compute and display shortest path by number of hops ---
+    double totalHops;
+    std::vector<int> parentHops = graph.unifiedDijkstra(srcIdx, dstIdx,
+        [](const EdgeInfo &edge) -> double { return 1.0; },
+        totalHops);
+    std::cout << "\n----- Shortest Path by Number of Hops -----\n";
+    if (totalHops == std::numeric_limits<double>::infinity()) {
+        std::cout << "No path exists between " << srcCity << " and " << dstCity << ".\n";
+    } else {
+        std::vector<int> path = graph.reconstructPath(parentHops, dstIdx);
+        for (std::size_t i = 0; i < path.size(); ++i) {
+            std::cout << graph.cities[path[i]];
+            if (i < path.size() - 1)
+                std::cout << " -> ";
+        }
+        std::cout << "\nTotal Hops: " << totalHops << "\n";
     }
 
     return 0;
