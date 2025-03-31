@@ -2,8 +2,6 @@
 #include <limits>
 #include <iomanip>
 
-
-
 /**
 * @brief Constructor that initializes n disjoint sets.
 * @param n Number of sets (typically, the number of cities).
