@@ -109,22 +109,7 @@ public:
      *
      * @return A vector of edges that are in the MST.
      */
-    std::vector<Edge> computeMSTEdges() const {
-        std::vector<Edge> mst;
-        // Copy edges for sorting.
-        std::vector<Edge> sortedEdges = edges;
-        std::sort(sortedEdges.begin(), sortedEdges.end(), [](const Edge &a, const Edge &b) {
-            return a.distance < b.distance;
-        });
-
-        UnionFind uf(numCities);
-        for (const auto &edge : sortedEdges) {
-            if (uf.unionSets(edge.u, edge.v)) {
-                mst.push_back(edge);
-            }
-        }
-        return mst;
-    }
+    std::vector<Edge> computeMSTEdges() const;
 
     /**
      * @brief Displays the Minimum Spanning Tree (MST) of the graph.
