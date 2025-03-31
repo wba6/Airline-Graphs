@@ -59,7 +59,6 @@ public:
      * @return True if the sets were merged; false if they were already in the same set.
      */
     bool unionSets(int x, int y);
-
 };
 
 /**
@@ -96,85 +95,14 @@ public:
      * @param filename The path to the route file.
      * @return True if reading was successful; false otherwise.
      */
-    bool readFromFile(const std::string &filename) {
-        std::ifstream infile(filename);
-        if (!infile) {
-            std::cerr << "Error opening file: " << filename << std::endl;
-            return false;
-        }
-
-        std::string line;
-        // 1. Read number of cities.
-        if (!std::getline(infile, line)) {
-            std::cerr << "File is empty or invalid." << std::endl;
-            return false;
-        }
-        numCities = std::stoi(line);
-
-        // 2. Read city names.
-        cities.resize(numCities);
-        for (int i = 0; i < numCities; i++) {
-            if (!std::getline(infile, line)) {
-                std::cerr << "Not enough city names provided." << std::endl;
-                return false;
-            }
-            // Remove any trailing carriage return (Windows line endings).
-            if (!line.empty() && line.back() == '\r')
-                line.pop_back();
-            cities[i] = line;
-            cityToIndex[line] = i;
-        }
-
-        // 3. Initialize adjacency list.
-        adjList.assign(numCities, std::vector<EdgeInfo>());
-
-        // 4. Read route data.
-        while (std::getline(infile, line)) {
-            if (line.empty())
-                continue;
-            std::istringstream iss(line);
-            int c1, c2, dist;
-            double price;
-            if (!(iss >> c1 >> c2 >> dist >> price)) {
-                // Skip malformed lines.
-                continue;
-            }
-            // Adjust from 1-indexed to 0-indexed.
-            int u = c1 - 1;
-            int v = c2 - 1;
-
-            // Store edge (only once) for MST.
-            edges.push_back({u, v, dist, price});
-
-            // For undirected graph, add edge to both u and v lists.
-            adjList[u].push_back({v, dist, price});
-            adjList[v].push_back({u, dist, price});
-        }
-
-        infile.close();
-        return true;
-    }
+    bool readFromFile(const std::string &filename);
 
     /**
      * @brief Displays all direct routes in the graph.
      *
      * Each city is printed along with its direct routes.
      */
-    void printGraph() const {
-        std::cout << "----- Direct Routes -----\n";
-        std::cout << "Total Cities: " << numCities << "\n";
-        std::cout << "Total Direct Routes: " << edges.size() << "\n\n";
-        for (int i = 0; i < numCities; ++i) {
-            std::cout << "(" << cities[i] << ")\n";
-            // Display all routes for this city.
-            for (const auto &edge : adjList[i]) {
-                std::cout << "  -> " << cities[i] << " - " << cities[edge.neighbor]
-                          << " | Distance: " << edge.distance << " miles"
-                          << " | Price: $" << std::fixed << std::setprecision(2) << edge.cost << "\n";
-            }
-            std::cout << "\n";
-        }
-    }
+    void printGraph() const;
 
     /**
      * @brief Computes the Minimum Spanning Tree (MST) using Kruskal's algorithm.
