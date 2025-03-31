@@ -116,45 +116,7 @@ public:
      *
      * If the graph is disconnected, the MSTs for each connected component are displayed.
      */
-    void printMST() const {
-        std::vector<Edge> mstEdges = computeMSTEdges();
-        // Group MST edges by connected component using UnionFind.
-        UnionFind uf(numCities);
-        for (const auto &edge : mstEdges) {
-            uf.unionSets(edge.u, edge.v);
-        }
-        std::map<int, std::vector<Edge>> components;
-        for (const auto &edge : mstEdges) {
-            int comp = uf.find(edge.u);
-            components[comp].push_back(edge);
-        }
-
-        std::cout << "----- Minimum Spanning Tree(s) (by distance) -----\n";
-        if (components.size() == 1) {
-            int totalDistance = 0;
-            for (const auto &edge : mstEdges) {
-                std::cout << "  " << cities[edge.u] << " <-> " << cities[edge.v]
-                          << " | Distance: " << edge.distance << " miles"
-                          << " | Price: $" << std::fixed << std::setprecision(2) << edge.cost << "\n";
-                totalDistance += edge.distance;
-            }
-            std::cout << "Total MST Distance: " << totalDistance << " miles\n\n";
-        } else {
-            int compNum = 1;
-            for (const auto &entry : components) {
-                std::cout << "Component " << compNum << ":\n";
-                int totalDistance = 0;
-                for (const auto &edge : entry.second) {
-                    std::cout << "  " << cities[edge.u] << " <-> " << cities[edge.v]
-                              << " | Distance: " << edge.distance << " miles"
-                              << " | Price: $" << std::fixed << std::setprecision(2) << edge.cost << "\n";
-                    totalDistance += edge.distance;
-                }
-                std::cout << "Total Distance: " << totalDistance << " miles\n\n";
-                compNum++;
-            }
-        }
-    }
+    void printMST() const;
 
     /**
      * @brief Unified Dijkstra algorithm for shortest path queries.
