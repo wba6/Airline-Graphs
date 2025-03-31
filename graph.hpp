@@ -47,11 +47,7 @@ public:
      * @param x The element to find.
      * @return The representative (root) of the set.
      */
-    int find(int x) {
-        if (parent[x] != x)
-            parent[x] = find(parent[x]);
-        return parent[x];
-    }
+    int find(int x);
 
     /**
      * @brief Unites the sets that contain x and y.
