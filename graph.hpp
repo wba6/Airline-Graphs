@@ -58,17 +58,8 @@ public:
      * @param y Second element.
      * @return True if the sets were merged; false if they were already in the same set.
      */
-    bool unionSets(int x, int y) {
-        int rootX = find(x), rootY = find(y);
-        if (rootX == rootY)
-            return false;
-        if (rank[rootX] < rank[rootY])
-            std::swap(rootX, rootY);
-        parent[rootY] = rootX;
-        if (rank[rootX] == rank[rootY])
-            rank[rootX]++;
-        return true;
-    }
+    bool unionSets(int x, int y);
+
 };
 
 /**
