@@ -208,4 +208,55 @@ void Graph::printMST() const {
     }
 }
 
+/**
+ * @brief Unified Dijkstra algorithm for shortest path queries.
+ *
+ * This function uses a lambda function (weightFunc) to determine the weight
+ * of an edge. It can be used for different metrics:
+ *  - For distance queries: weightFunc(edge) = edge.distance.
+ *  - For price queries:    weightFunc(edge) = edge.cost.
+ *  - For hops queries:     weightFunc(edge) = 1.
+ *
+ * @param start Index of the starting city.
+ * @param goal Index of the destination city.
+ * @param weightFunc A lambda that takes an EdgeInfo and returns its weight.
+ * @param outTotalCost Returns the total cumulative weight for the computed path.
+ * @return A vector representing the parent of each node in the shortest path tree.
+ */
+std::vector<int> Graph::unifiedDijkstra(int start, int goal, std::function<double(const EdgeInfo&)> weightFunc, double &outTotalCost) {
+    std::vector<double> cost(numCities, std::numeric_limits<double>::infinity());
+    std::vector<int> parent(numCities, -1);
+    cost[start] = 0.0;
+
+    // Priority queue: (cumulative cost, city index)
+    std::priority_queue<std::pair<double, int>, std::vector<std::pair<double, int>>, std::greater<std::pair<double, int>>> pq;
+    pq.push({0.0, start});
+
+    while (!pq.empty()) {
+        auto [currCost, u] = pq.top();
+        pq.pop();
+
+        // Skip stale entries.
+        if (currCost > cost[u])
+            continue;
+        if (u == goal)
+            break;  // Destination reached.
+
+        // Relax adjacent edges.
+        for (const auto &edge : adjList[u]) {
+            int v = edge.neighbor;
+            double newCost = cost[u] + weightFunc(edge);
+            if (newCost < cost[v]) {
+                cost[v] = newCost;
+                parent[v] = u;
+                pq.push({newCost, v});
+            }
+        }
+    }
+
+    outTotalCost = cost[goal];
+    return parent;
+}
+
+
 
