@@ -22,6 +22,7 @@
 #include <limits>
 #include <iomanip>
 #include "graph.hpp"
+
 /**
  * @brief Main entry point.
  *

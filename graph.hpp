@@ -40,12 +40,7 @@ public:
      * @brief Constructor that initializes n disjoint sets.
      * @param n Number of sets (typically, the number of cities).
      */
-    UnionFind(int n) {
-        parent.resize(n);
-        rank.resize(n, 0);
-        for (int i = 0; i < n; ++i)
-            parent[i] = i;
-    }
+    UnionFind(int n);
 
     /**
      * @brief Finds the representative of the set that contains x.
