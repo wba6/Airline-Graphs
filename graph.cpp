@@ -258,5 +258,21 @@ std::vector<int> Graph::unifiedDijkstra(int start, int goal, std::function<doubl
     return parent;
 }
 
-
+/**
+ * @brief Reconstructs the path from the source to destination.
+ *
+ * Given the parent vector from the shortest path algorithm, this function
+ * reconstructs the path from the source city to the destination city.
+ *
+ * @param parent The parent vector.
+ * @param dest The destination city index.
+ * @return A vector containing the indices of the cities along the path.
+ */
+std::vector<int> Graph::reconstructPath(const std::vector<int> &parent, int dest) const {
+    std::vector<int> path;
+    for (int cur = dest; cur != -1; cur = parent[cur])
+        path.push_back(cur);
+    std::reverse(path.begin(), path.end());
+    return path;
+}
 

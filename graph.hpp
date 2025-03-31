@@ -145,13 +145,8 @@ public:
      * @param dest The destination city index.
      * @return A vector containing the indices of the cities along the path.
      */
-    std::vector<int> reconstructPath(const std::vector<int> &parent, int dest) const {
-        std::vector<int> path;
-        for (int cur = dest; cur != -1; cur = parent[cur])
-            path.push_back(cur);
-        std::reverse(path.begin(), path.end());
-        return path;
-    }
+    std::vector<int> reconstructPath(const std::vector<int> &parent, int dest) const;
+    
 };
 
 
