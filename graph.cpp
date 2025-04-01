@@ -295,8 +295,7 @@ void Graph::findAllTripsFrom(const std::string &startCity, double budget) {
     visited[startIdx] = true;
     path.push_back(startIdx);
 
-    std::cout << "Trips starting from " << startCity << " within a budget of $" 
-              << budget << ":\n";
+    std::cout << "Trips starting from " << startCity << ":\n";  
     findTrips(startIdx, 0.0, budget, visited, path);
 }
 
@@ -314,7 +313,7 @@ void Graph::findTrips(int current, double currentCost, double budget,
                std::vector<bool> &visited, std::vector<int> &path) const {
     // If path has more than one city and the cost is within the budget, print the trip.
     if (path.size() > 1 && currentCost <= budget) {
-        std::cout << "Trip: ";
+        std::cout << "\t";
         for (size_t i = 0; i < path.size(); ++i) {
             std::cout << cities[path[i]];
             if (i < path.size() - 1)
@@ -338,3 +337,10 @@ void Graph::findTrips(int current, double currentCost, double budget,
     }
 }
 
+void Graph::findAllTripsFromBuget(const double budget) {
+    std::cout << "All trips under " << budget << std::endl;
+    for(const auto& city: cities) {
+       findAllTripsFrom(city, budget); 
+    }    
+
+}

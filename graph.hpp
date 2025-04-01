@@ -166,6 +166,7 @@ public:
     void findTrips(int current, double currentCost, double budget,
                std::vector<bool> &visited, std::vector<int> &path) const; 
 
+    void findAllTripsFromBuget(const double budget);
 };
 
 

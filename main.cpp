@@ -125,15 +125,12 @@ int main() {
     }
 
     // --- Part 3: Find all trips within a given budget ---
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear newline
-    std::string tripStartCity;
+    std::cout << "\n";
     double budget;
-    std::cout << "\nEnter starting city for trip search (Part 3): ";
-    std::getline(std::cin, tripStartCity);
-    std::cout << "Enter maximum budget ($) for a trip: ";
+    std::cout << "Enter maximum budget ($) for a trips: ";
     std::cin >> budget;
 
-    graph.findAllTripsFrom(tripStartCity, budget);
+    graph.findAllTripsFromBuget(budget);
 
     return 0;
 }
