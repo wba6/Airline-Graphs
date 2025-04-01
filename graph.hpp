@@ -141,6 +141,27 @@ public:
      */
     std::vector<int> reconstructPath(const std::vector<int> &parent, int dest) const;
     
+    /**
+    * @brief Finds and prints all trips starting from the given city within the budget.
+    *
+    * @param startCity The starting city's name.
+    * @param buget The maximum toatal cost allowed for a trip.
+    */
+    void findAllTripsFrom(const std::string& startCity, double buget);  
+
+    /**
+    * @brief Recursively finds and prints all trips (paths) starting from the current city 
+    *        that have a total cost within the given budget.
+    *
+    * @param current The index of the current city.
+    * @param currentCost The cumulative cost from the starting city along the current path.
+    * @param budget The maximum allowed cost for a trip.
+    * @param visited A vector indicating which cities have already been visited.
+    * @param path The current trip path (sequence of city indices).
+    */
+    void findTrips(int current, double currentCost, double budget,
+               std::vector<bool> &visited, std::vector<int> &path) const; 
+
 };
 
 

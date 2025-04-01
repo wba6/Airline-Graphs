@@ -278,3 +278,63 @@ std::vector<int> Graph::reconstructPath(const std::vector<int> &parent, int dest
     return path;
 }
 
+ /**
+ * @brief Finds and prints all trips starting from the given city within the budget.
+ *
+ * @param startCity The starting city's name.
+ * @param budget The maximum total cost allowed for a trip.
+ */
+void Graph::findAllTripsFrom(const std::string &startCity, double budget) {
+    if (cityToIndex.find(startCity) == cityToIndex.end()) {
+        std::cerr << "City " << startCity << " not found.\n";
+        return;
+    }
+    int startIdx = cityToIndex[startCity];
+    std::vector<bool> visited(numCities, false);
+    std::vector<int> path;
+    visited[startIdx] = true;
+    path.push_back(startIdx);
+
+    std::cout << "Trips starting from " << startCity << " within a budget of $" 
+              << budget << ":\n";
+    findTrips(startIdx, 0.0, budget, visited, path);
+}
+
+ /**
+ * @brief Recursively finds and prints all trips (paths) starting from the current city 
+ *        that have a total cost within the given budget.
+ *
+ * @param current The index of the current city.
+ * @param currentCost The cumulative cost from the starting city along the current path.
+ * @param budget The maximum allowed cost for a trip.
+ * @param visited A vector indicating which cities have already been visited.
+ * @param path The current trip path (sequence of city indices).
+ */
+void Graph::findTrips(int current, double currentCost, double budget,
+               std::vector<bool> &visited, std::vector<int> &path) const {
+    // If path has more than one city and the cost is within the budget, print the trip.
+    if (path.size() > 1 && currentCost <= budget) {
+        std::cout << "Trip: ";
+        for (size_t i = 0; i < path.size(); ++i) {
+            std::cout << cities[path[i]];
+            if (i < path.size() - 1)
+                std::cout << " -> ";
+        }
+        std::cout << " | Total Cost: $" << currentCost << "\n";
+    }
+
+    // Explore each neighboring city.
+    for (const auto &edge : adjList[current]) {
+        int neighbor = edge.neighbor;
+        double newCost = currentCost + edge.cost;
+        // Prune if neighbor is already visited or if adding this edge exceeds the budget.
+        if (!visited[neighbor] && newCost <= budget) {
+            visited[neighbor] = true;
+            path.push_back(neighbor);
+            findTrips(neighbor, newCost, budget, visited, path);
+            path.pop_back();
+            visited[neighbor] = false;
+        }
+    }
+}
+
