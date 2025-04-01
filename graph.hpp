@@ -65,11 +65,16 @@ public:
  */
 class Graph {
 public:
-    int numCities;                                      ///< Number of cities
-    std::vector<std::string> cities;                    ///< City names (index to name)
-    std::unordered_map<std::string, int> cityToIndex;   ///< Map from city name to index
-    std::vector<std::vector<EdgeInfo>> adjList;         ///< Adjacency list for shortest path queries
-    std::vector<Edge> edges;                            ///< Edge list for MST computation
+    // Number of cities
+    int numCities;                                      
+    // City names
+    std::vector<std::string> cities;
+    //Map from city name to its index
+    std::unordered_map<std::string, int> cityToIndex;
+    // Adjacency list
+    std::vector<std::vector<EdgeInfo>> adjList;
+    // Edge list for MST
+    std::vector<Edge> edges;
 
     /**
      * @brief Default constructor.
@@ -84,7 +89,6 @@ public:
      *   - Next N lines: each city name
      *   - Remaining lines: routes in the format:
      *         city1 city2 distance cost
-     *     (City numbers are 1-indexed in the file.)
      *
      * @param filename The path to the route file.
      * @return True if reading was successful; false otherwise.
