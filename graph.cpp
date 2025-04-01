@@ -1,6 +1,10 @@
 #include "graph.hpp"
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include <limits>
 #include <iomanip>
+#include <map>
 
 /**
 * @brief Constructor that initializes n disjoint sets.
@@ -67,14 +71,14 @@ bool Graph::readFromFile(const std::string &filename) {
     }
 
     std::string line;
-    // 1. Read number of cities.
+    // Read number of cities.
     if (!std::getline(infile, line)) {
         std::cerr << "File is empty or invalid." << std::endl;
         return false;
     }
     numCities = std::stoi(line);
 
-    // 2. Read city names.
+    // Read city names.
     cities.resize(numCities);
     for (int i = 0; i < numCities; i++) {
         if (!std::getline(infile, line)) {
@@ -88,10 +92,10 @@ bool Graph::readFromFile(const std::string &filename) {
         cityToIndex[line] = i;
     }
 
-    // 3. Initialize adjacency list.
+    // Initialize adjacency list.
     adjList.assign(numCities, std::vector<EdgeInfo>());
 
-    // 4. Read route data.
+    // Read route data.
     while (std::getline(infile, line)) {
         if (line.empty())
             continue;
