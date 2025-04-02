@@ -69,7 +69,7 @@ int main() {
     int srcIdx = graph.cityToIndex[srcCity];
     int dstIdx = graph.cityToIndex[dstCity];
 
-    // --- Compute and display shortest path by distance ---
+    // Compute and display shortest path by distance
     double totalDistance;
     std::vector<int> parentDistance = graph.unifiedDijkstra(srcIdx, dstIdx,
         [](const EdgeInfo &edge) -> double { return edge.distance; },
@@ -87,7 +87,7 @@ int main() {
         std::cout << "\nTotal Distance: " << totalDistance << " miles\n";
     }
 
-    // --- Compute and display shortest path by price ---
+    // Compute and display shortest path by price 
     double totalPrice;
     std::vector<int> parentPrice = graph.unifiedDijkstra(srcIdx, dstIdx,
         [](const EdgeInfo &edge) -> double { return edge.cost; },
@@ -106,7 +106,7 @@ int main() {
         std::cout << "\nTotal Price: $" << totalPrice << "\n";
     }
 
-    // --- Compute and display shortest path by number of hops ---
+    // Compute and display shortest path by number of hops 
     double totalHops;
     std::vector<int> parentHops = graph.unifiedDijkstra(srcIdx, dstIdx,
         [](const EdgeInfo &edge) -> double { return 1.0; },
@@ -124,7 +124,7 @@ int main() {
         std::cout << "\nTotal Hops: " << totalHops << "\n";
     }
 
-    // --- Part 3: Find all trips within a given budget ---
+    // Find all trips within a given budget 
     std::cout << "\n";
     double budget;
     std::cout << "Enter maximum budget ($) for a trips: ";
