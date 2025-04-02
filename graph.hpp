@@ -166,6 +166,11 @@ public:
     void findTrips(int current, double currentCost, double budget,
                std::vector<bool> &visited, std::vector<int> &path) const; 
 
+    /*
+     * @breif finds all trips based on a given budget
+     *
+     * @param budget The macimum allowed cost
+     */
     void findAllTripsFromBuget(const double budget);
 };
 
