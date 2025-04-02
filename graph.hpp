@@ -167,11 +167,20 @@ public:
                std::vector<bool> &visited, std::vector<int> &path) const; 
 
     /*
-     * @breif finds all trips based on a given budget
+     * @breif finds all trips based on a given budget and prints them
      *
      * @param budget The macimum allowed cost
      */
-    void findAllTripsFromBuget(const double budget);
+    void printAllTripsFromBuget(const double budget);
+
+    /**
+     * @brief Finds the fewest-hops path from start to goal using BFS.
+     *
+     * @param start The index of the starting city.
+     * @param goal  The index of the destination city.
+     * @return A parent vector for path reconstruction.
+     */
+    std::vector<int> shortestPathBFS(int start, int goal);
 };
 
 

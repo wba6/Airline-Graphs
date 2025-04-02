@@ -295,7 +295,7 @@ void Graph::findAllTripsFrom(const std::string &startCity, double budget) {
     visited[startIdx] = true;
     path.push_back(startIdx);
 
-    std::cout << "Trips starting from " << startCity << ":\n";  
+    std::cout << "Trips starting from (" << startCity << "):\n";  
     findTrips(startIdx, 0.0, budget, visited, path);
 }
 
@@ -342,7 +342,7 @@ void Graph::findTrips(int current, double currentCost, double budget,
  *
  * @param budget The macimum allowed cost
  */
-void Graph::findAllTripsFromBuget(const double budget) {
+void Graph::printAllTripsFromBuget(const double budget) {
     std::cout << "All trips under " << budget << std::endl;
 
     // Find trips from all cities
@@ -351,3 +351,46 @@ void Graph::findAllTripsFromBuget(const double budget) {
     }    
 
 }
+
+/**
+ * @brief Finds the fewest-hops path from start to goal using BFS.
+ *
+ * @param start The index of the starting city.
+ * @param goal  The index of the destination city.
+ * @return A parent vector for path reconstruction.
+ */
+std::vector<int> Graph::shortestPathBFS(int start, int goal) {
+    // Create a visited array and a parent array
+    std::vector<bool> visited(numCities, false);
+    std::vector<int> parent(numCities, -1);
+
+    // BFS setup
+    std::queue<int> q;
+    visited[start] = true;
+    q.push(start);
+
+    // BFS loop
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+
+        if (u == goal) {
+            // reached the goal stop BFS
+            break;
+        }
+
+        // Explore neighbors
+        for (auto &edge : adjList[u]) {
+            int v = edge.neighbor;
+            if (!visited[v]) {
+                visited[v] = true;
+                parent[v] = u;
+                q.push(v);
+            }
+        }
+    }
+
+    return parent;
+}
+
+
