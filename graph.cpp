@@ -337,8 +337,15 @@ void Graph::findTrips(int current, double currentCost, double budget,
     }
 }
 
+/*
+ * @breif finds all trips based on a given budget
+ *
+ * @param budget The macimum allowed cost
+ */
 void Graph::findAllTripsFromBuget(const double budget) {
     std::cout << "All trips under " << budget << std::endl;
+
+    // Find trips from all cities
     for(const auto& city: cities) {
        findAllTripsFrom(city, budget); 
     }    
