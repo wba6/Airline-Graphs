@@ -72,65 +72,13 @@ int main() {
     int dstIdx = graph.cityToIndex[dstCity];
 
     // Compute and display shortest path by distance
-    double totalDistance;
-    std::vector<int> parentDistance = graph.unifiedDijkstra(srcIdx, dstIdx,
-        [](const EdgeInfo &edge) -> double { return edge.distance; },
-        totalDistance);
-    std::cout << "\n----- Shortest Path by Distance -----\n";
-    if (totalDistance == std::numeric_limits<double>::infinity()) {
-        std::cout << "No path exists between " << srcCity << " and " << dstCity << ".\n";
-    } else {
-        std::vector<int> path = graph.reconstructPath(parentDistance, dstIdx);
-        for (std::size_t i = 0; i < path.size(); ++i) {
-            std::cout << graph.cities[path[i]];
-            if (i < path.size() - 1)
-                std::cout << " -> ";
-        }
-        std::cout << "\nTotal Distance: " << totalDistance << " miles\n";
-    }
+    graph.printShortestPathByDistance(srcIdx, dstIdx);
 
     // Compute and display shortest path by price 
-    double totalPrice;
-    std::vector<int> parentPrice = graph.unifiedDijkstra(srcIdx, dstIdx,
-        [](const EdgeInfo &edge) -> double { return edge.cost; },
-        totalPrice);
-    std::cout << "\n----- Shortest Path by Price -----\n";
-    if (totalPrice == std::numeric_limits<double>::infinity()) {
-        std::cout << "No path exists between " << srcCity << " and " << dstCity << ".\n";
-    } else {
-        std::vector<int> path = graph.reconstructPath(parentPrice, dstIdx);
-        for (std::size_t i = 0; i < path.size(); ++i) {
-            std::cout << graph.cities[path[i]];
-            if (i < path.size() - 1)
-                std::cout << " -> ";
-        }
-        std::cout << std::fixed << std::setprecision(2);
-        std::cout << "\nTotal Price: $" << totalPrice << "\n";
-    }
+    graph.printShortestPathByPrice(srcIdx, dstIdx); 
 
     // Compute and display shortest path by number of hops
-    // BFS for fewest hops
-    std::vector<int> parentHops = graph.shortestPathBFS(srcIdx, dstIdx);
-
-    // Reconstruct path using the same method as with Dijkstra
-    std::vector<int> bfsPath = graph.reconstructPath(parentHops, dstIdx);
-
-    std::cout << "\n----- Shortest Path by Number of Hops (BFS) -----\n";
-    if (bfsPath.empty() || bfsPath[0] != srcIdx) {
-        // Means we never reached the goal
-        std::cout << "No path exists between " << srcCity << " and " << dstCity << ".\n";
-    } else {
-        // Print path
-        for (std::size_t i = 0; i < bfsPath.size(); ++i) {
-            std::cout << graph.cities[bfsPath[i]];
-            if (i < bfsPath.size() - 1)
-                std::cout << " -> ";
-        }
-        // The number of hops is path.size() - 1
-        int fewestHops = static_cast<int>(bfsPath.size()) - 1;
-        std::cout << "\nTotal Hops: " << fewestHops << "\n";
-    }
-
+    graph.printShortestPathByJumps(srcIdx, dstIdx); 
 
     // Find all trips within a given budget 
     std::cout << "\n";

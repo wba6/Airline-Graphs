@@ -116,6 +116,45 @@ public:
      */
     void printMST() const;
 
+    /*
+     * @breif finds all trips based on a given budget and prints them
+     *
+     * @param budget The macimum allowed cost
+     */
+    void printAllTripsFromBuget(const double budget);
+
+    /**
+     * @brief Prints the shortest path based on total distance between two cities.
+     *
+     * This function uses the unified Dijkstra's algorithm with edge distance as the weight function.
+     *
+     * @param srcIndex The index of the source city.
+     * @param destIndex The index of the destination city.
+     */
+    void printShortestPathByDistance(int srcIndex, int destIndex);
+
+    /**
+     * @brief Prints the shortest path based on total price between two cities.
+     *
+     * This function uses the unified Dijkstra's algorithm with edge cost as the weight function.
+     *
+     * @param srcIndex The index of the source city.
+     * @param destIndex The index of the destination city.
+     */
+    void printShortestPathByPrice(int srcIndex, int destIndex);
+
+    /**
+     * @brief Prints the shortest path based on the fewest number of hops (edges) between two cities.
+     *
+     * This function uses a breadth-first search (BFS) to determine the path with the fewest hops
+     * from the source city to the destination city.
+     *
+     * @param srcIndex The index of the source city.
+     * @param destIndex The index of the destination city.
+     */
+    void printShortestPathByJumps(int srcIndex, int destIndex);
+
+private:
     /**
      * @brief Unified Dijkstra algorithm for shortest path queries.
      *
@@ -165,13 +204,6 @@ public:
     */
     void findTrips(int current, double currentCost, double budget,
                std::vector<bool> &visited, std::vector<int> &path) const; 
-
-    /*
-     * @breif finds all trips based on a given budget and prints them
-     *
-     * @param budget The macimum allowed cost
-     */
-    void printAllTripsFromBuget(const double budget);
 
     /**
      * @brief Finds the fewest-hops path from start to goal using BFS.

@@ -211,6 +211,93 @@ void Graph::printMST() const {
 }
 
 /**
+ * @brief Prints the shortest path based on total distance between two cities.
+ *
+ * This function uses the unified Dijkstra's algorithm with edge distance as the weight function.
+ *
+ * @param srcIndex The index of the source city.
+ * @param destIndex The index of the destination city.
+ */
+void Graph::printShortestPathByDistance(int srcIndex, int destIndex) {
+    double totalDistance;
+    std::vector<int> parentDistance = unifiedDijkstra(srcIndex, destIndex,
+        [](const EdgeInfo &edge) -> double { return edge.distance; },
+        totalDistance);
+    std::cout << "\n----- Shortest Path by Distance -----\n";
+    if (totalDistance == std::numeric_limits<double>::infinity()) {
+        std::cout << "No path exists between " << cities.at(srcIndex) << " and " << cities.at(destIndex)<< ".\n";
+    } else {
+        std::vector<int> path = reconstructPath(parentDistance, destIndex);
+        for (std::size_t i = 0; i < path.size(); ++i) {
+            std::cout << cities[path[i]];
+            if (i < path.size() - 1)
+                std::cout << " -> ";
+        }
+        std::cout << "\nTotal Distance: " << totalDistance << " miles\n";
+    }
+}
+
+/**
+ * @brief Prints the shortest path based on total price between two cities.
+ *
+ * This function uses the unified Dijkstra's algorithm with edge cost as the weight function.
+ *
+ * @param srcIndex The index of the source city.
+ * @param destIndex The index of the destination city.
+ */
+void Graph::printShortestPathByPrice(int srcIndex, int destIndex) {
+    double totalPrice;
+    std::vector<int> parentPrice = unifiedDijkstra(srcIndex, destIndex,
+        [](const EdgeInfo &edge) -> double { return edge.cost; },
+        totalPrice);
+    std::cout << "\n----- Shortest Path by Price -----\n";
+    if (totalPrice == std::numeric_limits<double>::infinity()) {
+        std::cout << "No path exists between " << cities.at(srcIndex) << " and " << cities.at(destIndex)<< ".\n";
+    } else {
+        std::vector<int> path = reconstructPath(parentPrice, destIndex);
+        for (std::size_t i = 0; i < path.size(); ++i) {
+            std::cout << cities[path[i]];
+            if (i < path.size() - 1)
+                std::cout << " -> ";
+        }
+        std::cout << std::fixed << std::setprecision(2);
+        std::cout << "\nTotal Price: $" << totalPrice << "\n";
+    }
+}
+
+/**
+ * @brief Prints the shortest path based on the fewest number of hops (edges) between two cities.
+ *
+ * This function uses a breadth-first search (BFS) to determine the path with the fewest hops
+ * from the source city to the destination city.
+ *
+ * @param srcIndex The index of the source city.
+ * @param destIndex The index of the destination city.
+ */
+void Graph::printShortestPathByJumps(int srcIndex, int destIndex) {
+    // BFS for fewest hops
+    std::vector<int> parentHops = shortestPathBFS(srcIndex, destIndex);
+
+    // Reconstruct path using the same method as with Dijkstra
+    std::vector<int> bfsPath = reconstructPath(parentHops, destIndex);
+
+    std::cout << "\n----- Shortest Path by Number of Hops (BFS) -----\n";
+    if (bfsPath.empty() || bfsPath[0] != srcIndex) {
+        std::cout << "No path exists between " << cities.at(srcIndex) << " and " << cities.at(destIndex)<< ".\n";
+    } else {
+        // Print path
+        for (std::size_t i = 0; i < bfsPath.size(); ++i) {
+            std::cout << cities[bfsPath[i]];
+            if (i < bfsPath.size() - 1)
+                std::cout << " -> ";
+        }
+        // The number of hops is path.size() - 1
+        int fewestHops = static_cast<int>(bfsPath.size()) - 1;
+        std::cout << "\nTotal Hops: " << fewestHops << "\n";
+    }
+}
+
+/**
  * @brief Unified Dijkstra algorithm for shortest path queries.
  *
  * This function uses a lambda function (weightFunc) to determine the weight
