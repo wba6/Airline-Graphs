@@ -14,6 +14,8 @@
  *
  * Dijkstra’s algorithm is used for all three metrics by parameterizing the
  * weight with a lambda function.
+ *
+ * The program also displays all available trips given a budget
  */
 
 #include <iostream>
