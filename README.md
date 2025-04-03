@@ -49,5 +49,8 @@ After the build completes, you can run the executable. For example, from the `bu
 
 **Note:** All files are relative to the executable file
 
+### 7. **Follow the directions**
+Follow the directions provided by the program and input needed variables/file paths. Contact wba6@uakron.edu with any questions
+
 ### Troubleshooting
 - **Compiler Issues:** Ensure that you have a C++ compiler that supports C++17 and that it is properly set up in your environment.
