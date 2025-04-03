@@ -5,6 +5,7 @@
 #include <limits>
 #include <iomanip>
 #include <map>
+#include <queue>
 
 /**
 * @brief Constructor that initializes n disjoint sets.
