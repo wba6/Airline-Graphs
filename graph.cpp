@@ -402,7 +402,7 @@ void Graph::findTrips(int current, double currentCost, double budget,
     if (path.size() > 1 && currentCost <= budget) {
         std::cout << "\t";
         for (size_t i = 0; i < path.size(); ++i) {
-            std::cout << cities[path[i]];
+            std::cout << cities[path[i]] << "($" << edges.at(path[i]).cost << ", " << edges.at(path[i]).distance << " miles)";
             if (i < path.size() - 1)
                 std::cout << " -> ";
         }
