@@ -230,9 +230,18 @@ void Graph::printShortestPathByDistance(int srcIndex, int destIndex) {
         std::vector<int> path = reconstructPath(parentDistance, destIndex);
         for (std::size_t i = 0; i < path.size(); ++i) {
             std::cout << cities[path[i]];
-            if (i < path.size() - 1)
-                std::cout << " -> ";
+            if (i < path.size() - 1) {
+                double legDistance = 0;
+                for (const auto &edge : adjList[path[i]]) {
+                    if (edge.neighbor == path[i+1]) {
+                        legDistance = edge.distance;
+                        break;
+                    }
+                }
+                std::cout << " (" << legDistance << " miles) -> ";
+            }
         }
+
         std::cout << "\nTotal Distance: " << totalDistance << " miles\n";
     }
 }
@@ -257,9 +266,18 @@ void Graph::printShortestPathByPrice(int srcIndex, int destIndex) {
         std::vector<int> path = reconstructPath(parentPrice, destIndex);
         for (std::size_t i = 0; i < path.size(); ++i) {
             std::cout << cities[path[i]];
-            if (i < path.size() - 1)
-                std::cout << " -> ";
+            if (i < path.size() - 1) {
+                double legPrice = 0;
+                for (const auto &edge : adjList[path[i]]) {
+                    if (edge.neighbor == path[i+1]) {
+                        legPrice = edge.cost;
+                        break;
+                    }
+                }
+                std::cout << " ($" << std::fixed << std::setprecision(2) << legPrice << ") -> ";
+            }
         }
+
         std::cout << std::fixed << std::setprecision(2);
         std::cout << "\nTotal Price: $" << totalPrice << "\n";
     }
@@ -402,11 +420,20 @@ void Graph::findTrips(int current, double currentCost, double budget,
     if (path.size() > 1 && currentCost <= budget) {
         std::cout << "\t";
         for (size_t i = 0; i < path.size(); ++i) {
-            std::cout << cities[path[i]] << "($" << edges.at(path[i]).cost << ", " << edges.at(path[i]).distance << " miles)";
-            if (i < path.size() - 1)
-                std::cout << " -> ";
+            std::cout << cities[path[i]];
+            if (i < path.size() - 1) {
+                double legCost = 0, miles = 0;
+                for (const auto &edge : adjList[path[i]]) {
+                    if (edge.neighbor == path[i+1]) {
+                        legCost = edge.cost;
+                        miles = edge.distance;
+                        break;
+                    }
+                }
+                std::cout << " ($" << std::fixed << std::setprecision(2) << legCost << ", " << miles << " miles) -> ";
+            }
         }
-        std::cout << " | Total Cost: $" << currentCost << "\n";
+        std::cout << " | Total Cost: $" << std::fixed << std::setprecision(2) << currentCost << "\n";
     }
 
     // Explore each neighboring city.
