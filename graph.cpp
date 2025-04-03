@@ -166,8 +166,8 @@ std::vector<Edge> Graph::computeMSTEdges() const {
 }
 
 /**
- * @brief Displays the Minimum Spanning Tree (MST) of the graph.
- *
+ * @brief Displays the Minimum Spanning Tree (MST) of the graph. Uses Kruskal's
+ * 
  * If the graph is disconnected, the MSTs for each connected component are displayed.
  */
 void Graph::printMST() const {
